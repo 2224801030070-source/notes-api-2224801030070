@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Bài 1 - Hello Cloud - 2324802010169</title>
+  <title>Báo cáo Thực hành Điện toán Đám mây - 2224801030070</title>
   <style>
     body { font-family: sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; line-height: 1.5; }
     table { border-collapse: collapse; width: 100%; }
@@ -53,5 +53,52 @@
     <li><b>Co giãn nhanh:</b> có thể tạo thêm codespace hoặc đổi cấu hình máy (ví dụ lên 4, 8 nhân) chỉ bằng vài cú bấm, và dừng hoặc xóa khi không cần.</li>
     <li><b>Dịch vụ đo lường được:</b> mục Billing → Usage của GitHub ghi lại số core-giờ Codespaces tôi đã dùng: [X] core-giờ.</li>
   </ol>
+
+  <hr style="margin: 2.5rem 0; border: 1px solid #ccc;">
+  <h1>Bài 2: Ảo hóa, Container và Mô phỏng Trung tâm Dữ liệu</h1>
+  <p>MSSV: 2224801030070 | Họ tên: Nguyễn Xuân Hào</p>
+
+  <h2>Phần A: Đóng gói ứng dụng Notes API và đẩy lên GHCR</h2>
+  <table>
+    <tr><th>Hạng mục</th><th>Chi tiết thực hiện</th></tr>
+    <tr><td>Base Image</td><td><code>node:20-alpine</code> (tối ưu dung lượng image)</td></tr>
+    <tr><td>Container Image</td><td><code>ghcr.io/2224801030070-source/notes-api:1.0</code> (trạng thái Public)</td></tr>
+    <tr><td>Kiểm thử API</td><td>Chạy container ánh xạ cổng <code>3000:3000</code>, kiểm tra thành công <code>GET /health</code> và <code>POST/GET /notes</code></td></tr>
+  </table>
+
+  <h2>Phần B: Mô phỏng Trung tâm Dữ liệu với CloudSim Plus</h2>
+  <table>
+    <tr>
+      <th>Lần chạy</th>
+      <th>Cấu hình thay đổi</th>
+      <th>FinishTime (giây)</th>
+      <th>Giải thích hiện tượng</th>
+    </tr>
+    <tr>
+      <td><b>Lần 0 (Mặc định)</b></td>
+      <td><code>VMS = 2</code>, <code>CLOUDLETS = 4</code>, <code>CloudletSchedulerTimeShared</code></td>
+      <td><b>20.1</b></td>
+      <td>Host có 8 lõi chứa vừa đủ 2 VM (mỗi VM 4 lõi). Mỗi VM chạy song song 2 cloudlet theo cơ chế chia sẻ thời gian (Time-Shared), tất cả bắt đầu lúc 0.1s và hoàn thành cùng lúc tại 20.1s.</td>
+    </tr>
+    <tr>
+      <td><b>Lần 1</b></td>
+      <td>Tăng <code>VMS = 4</code></td>
+      <td><b>20.1</b></td>
+      <td>Host vật lý chỉ có 8 lõi CPU nên chỉ cấp phát được tối đa 2 VM (mỗi VM 4 lõi); 2 VM còn lại bị từ chối tạo. Do đó tải công việc vẫn dồn lên 2 VM ban đầu và thời gian hoàn thành không đổi (20.1s).</td>
+    </tr>
+    <tr>
+      <td><b>Lần 2</b></td>
+      <td><code>VMS = 2</code>, tăng <code>CLOUDLETS = 8</code></td>
+      <td><b>40.1</b></td>
+      <td>Số lượng tác vụ tăng gấp đôi (8 cloudlet chia đều cho 2 VM, mỗi VM gánh 4 cloudlet thay vì 2). Tài nguyên CPU mỗi cloudlet nhận được giảm một nửa nên thời gian hoàn thành tăng gấp đôi lên 40.1s.</td>
+    </tr>
+    <tr>
+      <td><b>Lần 3</b></td>
+      <td><code>VMS = 2</code>, <code>CLOUDLETS = 4</code>, đổi sang <code>CloudletSchedulerSpaceShared</code></td>
+      <td><b>20.1</b></td>
+      <td>Mỗi VM có 4 lõi CPU, trong khi mỗi cloudlet chỉ yêu cầu 2 lõi (<code>CLOUDLET_CORES = 2</code>). Do đó cả 2 cloudlet trên mỗi VM vẫn được cấp đủ lõi CPU độc lập để chạy đồng thời ngay từ 0.1s và hoàn thành tại 20.1s.</td>
+    </tr>
+  </table>
 </body>
+
 </html>
